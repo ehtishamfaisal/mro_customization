@@ -1,0 +1,92 @@
+<openerp>
+    <data>
+
+    <record id="task_type_consume_material" model="ir.ui.view">
+        <field name="name">project.stock.type.consume.material</field>
+        <field name="model">mro.order</field>
+        <field name="inherit_id" ref="mro.mro_order_form_view"/>
+        <field name="arch" type="xml">
+        	<header>
+          <button name="action_assign" type="object"
+                  string="Check Availability"
+                  class="oe_highlight"/>
+          <button name="action_done" type="object" string="Transfer Materials"
+                  class="oe_highlight"/>
+        	</header>
+            </field>
+    </record>
+
+
+    <record id="mro_request_form_view_customize" model="ir.ui.view">
+        <field name="name">mro_request_form_view_customize</field>
+        <field name="model">mro.request</field>
+        <field name="inherit_id" ref="mro.mro_request_form_view"/>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+          <field name="asset_id" position="after">
+            <field name="fleet_vehicle_id" />
+          </field>
+          <field name="description" position="after">
+            <group string="Action Taken">
+              <field name="action_taken_description" colspan="4" nolabel="1" />
+            </group>
+          </field>
+        </field>
+    </record>
+
+    <record id="mro_order_form_view_customize" model="ir.ui.view">
+        <field name="name">mro_order_form_view_customize</field>
+        <field name="model">mro.order</field>
+        <field name="inherit_id" ref="mro.mro_order_form_view"/>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+          <xpath expr="//field[@name='parts_lines']/tree/field[@name='name']" position="after">
+            <field name="product_unit_price" />
+            <field name="total_price" sum="Total Price" />
+          </xpath>
+
+          <xpath expr="//page[@string='Labor']/separator[@string='Description for Labor']" position="before">
+            <group>
+              <field name="labor_fields_id" nolabel="1">
+                <tree editable="bottom">
+                  <field name="mechanics" />
+                  <field name="description_wrk_done"/>
+                  <field name="start_time"/>
+                  <field name="stop_time"/>
+                  <field name="total_time" sum="Total Time"/>
+                </tree>
+              </field>
+            </group>
+
+          </xpath>
+
+          <xpath expr="//page[@string='Labor']" position="after">
+            <page string="Market Workshop">
+              <group>
+                <group name="left">
+                  <field name="workshop_name"/>
+                </group>
+                <group name="right">
+                  <field name="actual_time_taken"/>
+                </group>
+              </group>
+              <group>
+                <field name="workshop_ids" nolabel="1">
+                  <tree editable="bottom">
+                    <field name="wrk_shop_des" />
+                    <field name="parts_materials"/>
+                    <field name="wrk_shop_qty"/>
+                    <field name="wrk_shop_price"/>
+                    <field name="wrk_shop_total" sum="Total Time"/>
+                  </tree>
+                </field>
+              </group>
+            </page>
+
+          </xpath>
+
+        </field>
+    </record>
+
+    </data>
+</openerp>
