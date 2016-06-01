@@ -38,12 +38,28 @@
         </field>
     </record>
 
+    <record id="mro_tree_view_customize" model="ir.ui.view">
+        <field name="name">mro_tree_view_customize</field>
+        <field name="model">mro.order</field>
+        <field name="inherit_id" ref="mro.mro_order_tree_view"/>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+          <xpath expr="//field[@name='state']" position="after">
+            <field name="total_part_price" />
+            <field name="total_market_price" />
+          </xpath>
+        </field>
+    </record>
+
     <record id="mro_order_form_view_customize" model="ir.ui.view">
         <field name="name">mro_order_form_view_customize</field>
         <field name="model">mro.order</field>
         <field name="inherit_id" ref="mro.mro_order_form_view"/>
         <field name="type">form</field>
         <field name="arch" type="xml">
+          <xpath expr="//field[@name='description']" position="after">
+            <field name="odoo_meter_value" />
+          </xpath>
           <xpath expr="//field[@name='parts_lines']/tree/field[@name='name']" position="after">
             <field name="product_unit_price" />
             <field name="total_price" sum="Total Price" />

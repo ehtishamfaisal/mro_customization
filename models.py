@@ -9,6 +9,9 @@ class extend_mro(models.Model):
     workshop_ids = fields.One2many('work_shop','work_shop_id')
     m_source_location = fields.Many2one('stock.location','Source Location', required=True)
     m_destination_location = fields.Many2one('stock.location','Destination Location', required=True)
+    odoo_meter_value = fields.Float('Odoometer Value')
+    total_part_price = fields.Float(string='Total Parts',store=True, readonly=True, compute='_compute_tpamount')
+    total_market_price = fields.Float(string='Total Market',store=True, readonly=True, compute='_compute_twamount')
     def _compute_stock_move(self):
         self.stock_move_ids = self.mapped('parts_lines.stock_move_id')
     stock_move_ids = fields.Many2many(
@@ -29,6 +32,16 @@ class extend_mro(models.Model):
     def action_done(self):
         self.mapped('stock_move_ids').action_done()
 
+
+    @api.one
+    @api.depends('parts_lines.total_price')
+    def _compute_tpamount(self):
+        self.total_part_price = sum(line.total_price for line in self.parts_lines) 
+
+    @api.one
+    @api.depends('workshop_ids.wrk_shop_total')
+    def _compute_twamount(self):
+        self.total_market_price = sum(line.wrk_shop_total for line in self.workshop_ids)  
 
 class stock_move_mro(models.Model):
     _inherit = "mro.order.parts.line"
@@ -62,6 +75,16 @@ class stock_move_mro(models.Model):
             move_id = self.env['stock.move'].create(
                 line._prepare_stock_move())
             line.stock_move_id = move_id.id
+
+    @api.one
+    @api.depends('parts_id')
+    def _compute_unit_price(self):
+        self.product_unit_price = self.parts_id.standard_price 
+
+    @api.one
+    @api.depends('parts_id','parts_qty')
+    def _compute_total_price(self):
+        self.total_price = self.parts_id.standard_price * self.parts_qty      
 
 #mro request inherit clall
 class extend_mro_request(models.Model):
