@@ -12,6 +12,7 @@ class extend_mro(models.Model):
     odoo_meter_value = fields.Float('Odoometer Value')
     total_part_price = fields.Float(string='Total Parts',store=True, readonly=True, compute='_compute_tpamount')
     total_market_price = fields.Float(string='Total Market',store=True, readonly=True, compute='_compute_twamount')
+    fleet_vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle No & Model")
     def _compute_stock_move(self):
         self.stock_move_ids = self.mapped('parts_lines.stock_move_id')
     stock_move_ids = fields.Many2many(

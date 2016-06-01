@@ -13,6 +13,9 @@
           <button name="action_done" type="object" string="Transfer Materials"
                   class="oe_highlight"/>
           </header>
+          <xpath expr="//field[@name='asset_id']" position="after">
+            <field name="fleet_vehicle_id" />
+          </xpath>
           <xpath expr="//field[@name='description']" position="after">
             <field name="m_source_location" />
             <field name="m_destination_location" />
