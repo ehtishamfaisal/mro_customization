@@ -7,6 +7,8 @@ class extend_mro(models.Model):
     workshop_name = fields.Char("Name of Workshop")
     actual_time_taken = fields.Datetime('Actual Time Taken')
     workshop_ids = fields.One2many('work_shop','work_shop_id')
+    m_source_location = fields.Many2one('stock.location','Source Location', required=True)
+    m_destination_location = fields.Many2one('stock.location','Destination Location', required=True)
     def _compute_stock_move(self):
         self.stock_move_ids = self.mapped('parts_lines.stock_move_id')
     stock_move_ids = fields.Many2many(
@@ -38,6 +40,7 @@ class stock_move_mro(models.Model):
 
     def _prepare_stock_move(self):
         product = self.parts_id
+        maintaince_order_recs = self.env['mro.order'].search([('id','=',self.maintenance_id.id)])
         res = {
             'product_id': product.id,
             'name': product.name,
@@ -47,6 +50,9 @@ class stock_move_mro(models.Model):
             'stock.stock_location_stock').id,
             'location_dest_id': self.env.ref(
             'stock.stock_location_customers').id,
+            'maintaince_order_ref' : maintaince_order_recs.id,
+            'location_id' : maintaince_order_recs.m_source_location.id,
+            'location_dest_id' : maintaince_order_recs.m_destination_location.id,
         }
         return res
 
@@ -86,3 +92,9 @@ class work_shop(models.Model):
     wrk_shop_price = fields.Float("Unit Price")
     wrk_shop_total = fields.Float("Total")
     work_shop_id = fields.Many2one('mro.order')
+
+
+#stock move class
+class mro_alfateh_stock_move(models.Model):
+    _inherit = 'stock.move'
+    maintaince_order_ref = fields.Many2one('mro.order',string="MRO Order Ref") 

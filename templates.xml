@@ -6,14 +6,18 @@
         <field name="model">mro.order</field>
         <field name="inherit_id" ref="mro.mro_order_form_view"/>
         <field name="arch" type="xml">
-        	<header>
+          <header>
           <button name="action_assign" type="object"
                   string="Check Availability"
                   class="oe_highlight"/>
           <button name="action_done" type="object" string="Transfer Materials"
                   class="oe_highlight"/>
-        	</header>
-            </field>
+          </header>
+          <xpath expr="//field[@name='description']" position="after">
+            <field name="m_source_location" />
+            <field name="m_destination_location" />
+          </xpath>
+        </field>
     </record>
 
 
@@ -85,6 +89,18 @@
 
           </xpath>
 
+        </field>
+    </record>
+
+
+    <record id="alfateh_view_move_form_customization" model="ir.ui.view">
+        <field name="name">alfateh_view_move_form_customization</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_form"/>
+        <field name="arch" type="xml">
+          <xpath expr="//field[@name='name']" position="after">
+            <field name="maintaince_order_ref" />
+          </xpath>
         </field>
     </record>
 
