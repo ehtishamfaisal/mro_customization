@@ -1,5 +1,6 @@
 from openerp import models, fields, api
 from openerp.tools.float_utils import float_round
+from datetime import date, datetime
 class extend_mro(models.Model):
     _inherit = "mro.order"
 
@@ -19,11 +20,23 @@ class extend_mro(models.Model):
     stock_move_ids = fields.Many2many(
         comodel_name='stock.move', compute='_compute_stock_move',
         string='Stock Moves')
-    @api.multi
-    def write(self, values):
-        result = super(extend_mro, self).write(values)
-#        for rec in self:
-#            rec.parts_lines.create_stock_move()
+    @api.model
+    def create(self, values):
+        result = super(extend_mro, self).create(values)
+        if values['fleet_vehicle_id']:
+            vehicle_cost = self.env['fleet.vehicle.cost']
+            price = 0
+            vehicle_cost_type = self.env['fleet.service.type'].search([('name','=','Repair and maintenance')])
+            for value in values['parts_lines']:
+                price = price + value[2]['total_price']
+                print price
+            res = {
+            'vehicle_id' : values['fleet_vehicle_id'],
+            'cost_subtype_id' : vehicle_cost_type.id,
+            'amount' : price,
+            'date' : values['date_planned'],
+            }
+            vehicle_cost.create(res)
         return result
 
 #    @api.multi
@@ -59,10 +72,12 @@ class extend_mro(models.Model):
             'name': data.parts_id.name,
             'product_uom': data.parts_uom.id,
             'product_uom_qty': data.parts_qty,
-            'location_id': self.env.ref(
-            'stock.stock_location_stock').id,
-            'location_dest_id': self.env.ref(
-            'stock.stock_location_customers').id,
+            'location_id' : self.m_source_location.id,
+            'location_dest_id' : self.m_destination_location.id,
+            #'location_id': self.env.ref(
+            #'stock.stock_location_stock').id,
+            #'location_dest_id': self.env.ref(
+            #'stock.stock_location_customers').id,
             }
         return data
     @api.multi
@@ -82,6 +97,7 @@ class extend_mro(models.Model):
         records = self.env['stock.picking'].search([('maintaince_order_ref_id','=',self.id)])
         records.move_lines= self._prepare_mo_workbook_one_ids()
         self.material_transfered = "YES"
+        records.write({'state':'done'})
 
 
 class stock_move_mro(models.Model):
