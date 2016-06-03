@@ -1,17 +1,25 @@
 <openerp>
     <data>
-
+    <record id="alfateh_stock_view_picking_form" model="ir.ui.view">
+        <field name="name">alfateh_stock_view_picking_form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+          <xpath expr="//field[@name='partner_id']" position="after">
+            <field name="maintaince_order_ref_id" />
+          </xpath>
+        </field>
+    </record>
     <record id="task_type_consume_material" model="ir.ui.view">
         <field name="name">project.stock.type.consume.material</field>
         <field name="model">mro.order</field>
         <field name="inherit_id" ref="mro.mro_order_form_view"/>
         <field name="arch" type="xml">
           <header>
-          <button name="action_assign" type="object"
-                  string="Check Availability"
-                  class="oe_highlight"/>
-          <button name="action_done" type="object" string="Transfer Materials"
-                  class="oe_highlight"/>
+          <button name="update_consume_history" type="object"
+                  string="Transfer Materials"
+                  class="oe_highlight" attrs="{'invisible':[('material_transfered','=','YES')]}"/>
           </header>
           <xpath expr="//field[@name='asset_id']" position="after">
             <field name="fleet_vehicle_id" />
@@ -19,6 +27,9 @@
           <xpath expr="//field[@name='description']" position="after">
             <field name="m_source_location" />
             <field name="m_destination_location" />
+          </xpath>
+          <xpath expr="//field[@name='origin']" position="after">
+            <field name="material_transfered" />
           </xpath>
         </field>
     </record>

@@ -13,6 +13,7 @@ class extend_mro(models.Model):
     total_part_price = fields.Float(string='Total Parts',store=True, readonly=True, compute='_compute_tpamount')
     total_market_price = fields.Float(string='Total Market',store=True, readonly=True, compute='_compute_twamount')
     fleet_vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle No & Model")
+    material_transfered = fields.Char("Material Status", readonly=True)
     def _compute_stock_move(self):
         self.stock_move_ids = self.mapped('parts_lines.stock_move_id')
     stock_move_ids = fields.Many2many(
@@ -42,7 +43,46 @@ class extend_mro(models.Model):
     @api.one
     @api.depends('workshop_ids.wrk_shop_total')
     def _compute_twamount(self):
-        self.total_market_price = sum(line.wrk_shop_total for line in self.workshop_ids)  
+        self.total_market_price = sum(line.wrk_shop_total for line in self.workshop_ids)
+    @api.multi
+    def _prepare_mo_workbook_one_ids(self):
+        new_data = []
+        all_recd_consume = self.parts_lines
+        for line in all_recd_consume:
+            data = self._prepare_workbook_one_line(line)
+            new_data.append(data)
+        return new_data
+    @api.multi
+    def _prepare_workbook_one_line(self, data):
+        data = {
+            'product_id': data.parts_id,
+            'name': data.parts_id.name,
+            'product_uom': data.parts_uom.id,
+            'product_uom_qty': data.parts_qty,
+            'location_id': self.env.ref(
+            'stock.stock_location_stock').id,
+            'location_dest_id': self.env.ref(
+            'stock.stock_location_customers').id,
+            }
+        return data
+    @api.multi
+    def update_consume_history(self, values):
+        whare_house_type = self.env['stock.picking.type'].search([('name','=','Delivery Orders')])
+        whare_house = self.env['stock.picking']
+        whare_house_move_lines = self._prepare_mo_workbook_one_ids()
+        values = {
+        'move_type': 'direct',
+        'invoice_state': 'none',
+        'picking_type_id': whare_house_type.id,
+        'company_id': self.company_id.id,
+        'priority': '1',
+        'maintaince_order_ref_id' : self.id,
+        }
+        whare_house.create(values)
+        records = self.env['stock.picking'].search([('maintaince_order_ref_id','=',self.id)])
+        records.move_lines= self._prepare_mo_workbook_one_ids()
+        self.material_transfered = "YES"
+
 
 class stock_move_mro(models.Model):
     _inherit = "mro.order.parts.line"
@@ -122,3 +162,8 @@ class work_shop(models.Model):
 class mro_alfateh_stock_move(models.Model):
     _inherit = 'stock.move'
     maintaince_order_ref = fields.Many2one('mro.order',string="MRO Order Ref") 
+
+
+class mro_alfateh_stock_picking(models.Model):
+    _inherit = 'stock.picking'
+    maintaince_order_ref_id = fields.Many2one('mro.order',string="MRO Order Ref") 
