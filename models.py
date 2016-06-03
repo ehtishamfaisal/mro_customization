@@ -22,17 +22,17 @@ class extend_mro(models.Model):
     @api.multi
     def write(self, values):
         result = super(extend_mro, self).write(values)
-        for rec in self:
-            rec.parts_lines.create_stock_move()
+#        for rec in self:
+#            rec.parts_lines.create_stock_move()
         return result
 
-    @api.multi
-    def action_assign(self):
-        self.mapped('stock_move_ids').action_assign()
+#    @api.multi
+#    def action_assign(self):
+#        self.mapped('stock_move_ids').action_assign()
 
-    @api.multi
-    def action_done(self):
-        self.mapped('stock_move_ids').action_done()
+#    @api.multi
+#    def action_done(self):
+#        self.mapped('stock_move_ids').action_done()
 
 
     @api.one
@@ -92,30 +92,30 @@ class stock_move_mro(models.Model):
     total_price = fields.Float("Total")
 
 
-    def _prepare_stock_move(self):
-        product = self.parts_id
-        maintaince_order_recs = self.env['mro.order'].search([('id','=',self.maintenance_id.id)])
-        res = {
-            'product_id': product.id,
-            'name': product.name,
-            'product_uom': self.parts_uom.id,
-            'product_uom_qty': self.parts_qty,
-            'location_id': self.env.ref(
-            'stock.stock_location_stock').id,
-            'location_dest_id': self.env.ref(
-            'stock.stock_location_customers').id,
-            'maintaince_order_ref' : maintaince_order_recs.id,
-            'location_id' : maintaince_order_recs.m_source_location.id,
-            'location_dest_id' : maintaince_order_recs.m_destination_location.id,
-        }
-        return res
+#    def _prepare_stock_move(self):
+#        product = self.parts_id
+#        maintaince_order_recs = self.env['mro.order'].search([('id','=',self.maintenance_id.id)])
+#        res = {
+#            'product_id': product.id,
+#            'name': product.name,
+#            'product_uom': self.parts_uom.id,
+#            'product_uom_qty': self.parts_qty,
+#            'location_id': self.env.ref(
+#            'stock.stock_location_stock').id,
+#            'location_dest_id': self.env.ref(
+#            'stock.stock_location_customers').id,
+#            'maintaince_order_ref' : maintaince_order_recs.id,
+#            'location_id' : maintaince_order_recs.m_source_location.id,
+#            'location_dest_id' : maintaince_order_recs.m_destination_location.id,
+#        }
+#        return res
 
-    @api.multi
-    def create_stock_move(self):
-        for line in self:
-            move_id = self.env['stock.move'].create(
-                line._prepare_stock_move())
-            line.stock_move_id = move_id.id
+#    @api.multi
+#    def create_stock_move(self):
+#        for line in self:
+#            move_id = self.env['stock.move'].create(
+#                line._prepare_stock_move())
+#            line.stock_move_id = move_id.id
 
     @api.one
     @api.depends('parts_id')
