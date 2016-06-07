@@ -11,7 +11,7 @@
 
 
     # any module necessary for this one to work correctly
-    'depends': ['base','mro'],
+    'depends': ['base','mro','fleet'],
 
     # always loaded
     'data': [

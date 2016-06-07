@@ -66,10 +66,11 @@ class extend_mro(models.Model):
     @api.model
     def create(self, vals):
         current_vehicles = self.env['fleet.vehicle'].search([('id','=',vals['fleet_vehicle_id'])])
-        current_vehicles.engine_oil_change_value = current_vehicles.engine_oil_change + vals['engine_oil_change_value']
-        current_vehicles.oil_filter_value = current_vehicles.oil_filter + vals['oil_filter_value']
-        current_vehicles.air_filter_value = current_vehicles.air_filter + vals['air_filter_value']
-        current_vehicles.gear_oil_value = current_vehicles.gear_oil +vals['gear_oil_value']
+        if vals['fleet_vehicle_id']:
+            current_vehicles.engine_oil_change_value = current_vehicles.engine_oil_change + vals['engine_oil_change_value']
+            current_vehicles.oil_filter_value = current_vehicles.oil_filter + vals['oil_filter_value']
+            current_vehicles.air_filter_value = current_vehicles.air_filter + vals['air_filter_value']
+            current_vehicles.gear_oil_value = current_vehicles.gear_oil +vals['gear_oil_value']
         return super(extend_mro,self).create(vals)
 
     @api.multi
@@ -141,8 +142,8 @@ class stock_move_mro(models.Model):
     _inherit = "mro.order.parts.line"
     stock_move_id = fields.Many2one(
         comodel_name='stock.move', string='Stock Move')
-    product_unit_price = fields.Float("Unit Price")
-    total_price = fields.Float("Total")
+    product_unit_price = fields.Float("Unit Price",store=True, readonly=True, compute="_compute_unit_price")
+    total_price = fields.Float("Total",store=True, readonly=True, compute="_compute_total_price")
 
 
 #    def _prepare_stock_move(self):
