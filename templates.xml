@@ -71,6 +71,14 @@
         <field name="inherit_id" ref="mro.mro_order_form_view"/>
         <field name="type">form</field>
         <field name="arch" type="xml">
+
+          <xpath expr="//field[@name='origin']" position="after">
+            <field name="engine_oil_change_value" />
+            <field name="oil_filter_value" />
+            <field name="air_filter_value" />
+            <field name="gear_oil_value" />
+          </xpath>
+          
           <xpath expr="//field[@name='description']" position="after">
             <field name="odoo_meter_value" />
           </xpath>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "mro_customization",
+    'name': "mro_customization final",
 
     'summary': "Mro Enhancement",
 

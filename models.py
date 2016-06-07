@@ -6,15 +6,20 @@ class extend_mro(models.Model):
 
     labor_fields_id = fields.One2many('tree_labor','tree_labor_id')
     workshop_name = fields.Char("Name of Workshop")
-    actual_time_taken = fields.Datetime('Actual Time Taken')
+    actual_time_taken = fields.Float('Actual Time Taken')
     workshop_ids = fields.One2many('work_shop','work_shop_id')
     m_source_location = fields.Many2one('stock.location','Source Location', required=True)
     m_destination_location = fields.Many2one('stock.location','Destination Location', required=True)
     odoo_meter_value = fields.Float('Odoometer Value')
+    engine_oil_change_value = fields.Float('Odometer (Engine Oil)')
+    oil_filter_value = fields.Float('Odometer (Oil Filter)')
+    air_filter_value = fields.Float('Odometer (Air Filter)')
+    gear_oil_value = fields.Float('Odometer (Gear Oil)')
     total_part_price = fields.Float(string='Total Parts',store=True, readonly=True, compute='_compute_tpamount')
     total_market_price = fields.Float(string='Total Market',store=True, readonly=True, compute='_compute_twamount')
     fleet_vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle No & Model")
     material_transfered = fields.Char("Material Status", readonly=True)
+
     def _compute_stock_move(self):
         self.stock_move_ids = self.mapped('parts_lines.stock_move_id')
     stock_move_ids = fields.Many2many(
@@ -57,6 +62,38 @@ class extend_mro(models.Model):
     @api.depends('workshop_ids.wrk_shop_total')
     def _compute_twamount(self):
         self.total_market_price = sum(line.wrk_shop_total for line in self.workshop_ids)
+
+    @api.model
+    def create(self, vals):
+        current_vehicles = self.env['fleet.vehicle'].search([('id','=',vals['fleet_vehicle_id'])])
+        current_vehicles.engine_oil_change_value = current_vehicles.engine_oil_change + vals['engine_oil_change_value']
+        current_vehicles.oil_filter_value = current_vehicles.oil_filter + vals['oil_filter_value']
+        current_vehicles.air_filter_value = current_vehicles.air_filter + vals['air_filter_value']
+        current_vehicles.gear_oil_value = current_vehicles.gear_oil +vals['gear_oil_value']
+        return super(extend_mro,self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        before_engine_oil_change_value = self.engine_oil_change_value
+        before_oil_filter_value = self.oil_filter_value
+        before_air_filter_value = self.air_filter_value
+        before_gear_oil_value = self.gear_oil_value
+        result =  super(extend_mro,self).write(vals)
+        self.fleet_vehicle_id.engine_oil_change_value = (self.fleet_vehicle_id.engine_oil_change + self.engine_oil_change_value)
+        self.fleet_vehicle_id.oil_filter_value = (self.fleet_vehicle_id.oil_filter + self.oil_filter_value) 
+        self.fleet_vehicle_id.air_filter_value = (self.fleet_vehicle_id.air_filter + self.air_filter_value) 
+        self.fleet_vehicle_id.gear_oil_value = (self.fleet_vehicle_id.gear_oil + self.gear_oil_value) 
+        return result
+
+    @api.multi
+    def unlink(self):
+        current_vehicles = self.env['fleet.vehicle'].search([('id','=',self.fleet_vehicle_id.id)])
+        current_vehicles.engine_oil_change_value = current_vehicles.engine_oil_change_value - self.engine_oil_change_value
+        current_vehicles.oil_filter_value = current_vehicles.oil_filter_value - self.oil_filter_value
+        current_vehicles.air_filter_value = current_vehicles.air_filter_value - self.air_filter_value
+        current_vehicles.gear_oil_value = current_vehicles.gear_oil_value - self.gear_oil_value
+        return super(extend_mro,self).unlink()         
+        
     @api.multi
     def _prepare_mo_workbook_one_ids(self):
         new_data = []
@@ -160,7 +197,7 @@ class tree_labor(models.Model):
     description_wrk_done = fields.Char("Description of Work Done")
     start_time = fields.Datetime("Start")
     stop_time = fields.Datetime("End")
-    total_time = fields.Datetime("Total Time")
+    total_time = fields.Float("Total Time")
     tree_labor_id = fields.Many2one('mro.order')
 
 #work_shop class work shop
