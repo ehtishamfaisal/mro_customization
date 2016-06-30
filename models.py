@@ -65,12 +65,13 @@ class extend_mro(models.Model):
 
     @api.model
     def create(self, vals):
-        current_vehicles = self.env['fleet.vehicle'].search([('id','=',vals['fleet_vehicle_id'])])
-        if vals['fleet_vehicle_id']:
-            current_vehicles.engine_oil_change_value = current_vehicles.engine_oil_change + vals['engine_oil_change_value']
-            current_vehicles.oil_filter_value = current_vehicles.oil_filter + vals['oil_filter_value']
-            current_vehicles.air_filter_value = current_vehicles.air_filter + vals['air_filter_value']
-            current_vehicles.gear_oil_value = current_vehicles.gear_oil +vals['gear_oil_value']
+        if vals.get('fleet_vehicle_id'):
+            #current_vehicles = self.env['fleet.vehicle'].search([('id','=',vals['fleet_vehicle_id'])])
+            #current_vehicles.engine_oil_change_value = current_vehicles.engine_oil_change + vals['engine_oil_change_value']
+            #current_vehicles.oil_filter_value = current_vehicles.oil_filter + vals['oil_filter_value']
+            #current_vehicles.air_filter_value = current_vehicles.air_filter + vals['air_filter_value']
+            #current_vehicles.gear_oil_value = current_vehicles.gear_oil +vals['gear_oil_value']
+            print "x"
         return super(extend_mro,self).create(vals)
 
     @api.multi
@@ -187,6 +188,28 @@ class extend_mro_request(models.Model):
     fleet_vehicle_id = fields.Many2one('fleet.vehicle', string="Vehicle No & Model")
     responded_time = fields.Datetime("Responded Time")
     action_taken_description = fields.Text("Action Taken")
+
+    def action_confirm(self, cr, uid, ids, context=None):
+        """ Confirms maintenance request.
+        @return: Newly generated Maintenance Order Id.
+        """
+        order = self.pool.get('mro.order')
+        order_id = False
+        for request in self.browse(cr, uid, ids, context=context):
+            order_id = order.create(cr, uid, {
+                'date_planned':request.requested_date,
+                'date_scheduled':request.requested_date,
+                'date_execution':request.requested_date,
+                'origin': request.name,
+                'state': 'draft',
+                'maintenance_type': 'bm',
+                'asset_id': request.asset_id.id,
+                'description': request.cause,
+                'problem_description': request.description,
+                'fleet_vehicle_id' : request.fleet_vehicle_id.id,
+            })
+        self.write(cr, uid, ids, {'state': 'run'})
+        return order_id
 
 class inherit_fleet_module(models.Model):
     _inherit = 'fleet.vehicle'
