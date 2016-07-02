@@ -231,9 +231,13 @@ class work_shop(models.Model):
     parts_materials = fields.Char("Description of Work Done")
     wrk_shop_qty = fields.Float("Quantity")
     wrk_shop_price = fields.Float("Unit Price")
-    wrk_shop_total = fields.Float("Total")
+    wrk_shop_total = fields.Float("Total",  compute='_compute_total_price')
     work_shop_id = fields.Many2one('mro.order')
 
+    @api.one
+    @api.depends('wrk_shop_qty','wrk_shop_price' )
+    def _compute_total_price(self):
+        self.wrk_shop_total = self.wrk_shop_qty * self.wrk_shop_price 
 
 #stock move class
 class mro_alfateh_stock_move(models.Model):
